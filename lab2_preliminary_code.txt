@@ -1,0 +1,115 @@
+PART C. Dataflow Systemverilog module for a Full-adder & testbench
+
+module fulladder( input  logic a, b, cin,
+		  output logic s, cout);
+
+	logic p,g;	
+	assign p = a ^ b;
+	assign g = a & b;
+	assign s = p ^ cin;
+	assign cout = g | (p & cin);
+
+endmodule
+
+
+module tb_fulladder();
+
+	logic a, b, cin, s, cout;
+
+	//Instantiate device under test
+	fulladder dut(a, b, cin, s, cout);
+
+	//apply inputs one at a time
+	//checking results
+	initial begin
+		a = 0; b = 0; cin = 0; #10;
+		assert( s === 0 & cout === 0 ) else $error("000 failed");
+		cin = 1;               #10;
+		assert( s === 1 & cout === 0 ) else $error("001 failed");
+		b = 1; cin = 0;        #10;
+		assert( s === 1 & cout === 0 ) else $error("010 failed");
+		cin = 1;               #10;
+		assert( s === 0 & cout === 1 ) else $error("011 failed");
+		a = 1; b = 0; cin = 0; #10;
+		assert( s === 1 & cout === 0 ) else $error("100 failed");
+		cin = 1;               #10;
+		assert( s === 0 & cout === 1 ) else $error("101 failed");
+		b = 1; cin = 0;        #10;
+		assert( s === 0 & cout === 1 ) else $error("110 failed");
+		cin = 1;               #10;
+		assert( s === 1 & cout === 1 ) else $error("111 failed");
+		end
+
+end module
+
+
+
+PART D. Structural Systemverilog module for a 2bit-adder & testbench
+
+module twobitadder( input  logic [1:0] a, b, 
+		    input  logic       cin, 
+		    output logic [1:0] s, 
+		    output logic       cout);	
+ 
+	logic c1;	//The wire that will be carry-out of the first fulladder & carry-in of the second
+
+	//Two bit adder composed by 2 1-bit full adders
+	fulladder fa1( a[0], b[0], cin, s[0], c1);		
+	fulladder fa2( a[1], b[1],  c1, s[1], cout);	
+
+endmodule
+
+module tb_2bitadder()
+	logic [1:0] a, b, s; 
+	logic       cin, cout; 
+
+	//Instantiate device under test
+	twobitadder dut(a, b, cin, s, cout);
+
+	//apply inputs one at a time
+	//checking results
+	initial begin
+		a = 0; b = 0; cin = 1; #10;
+		assert( s === 1 & cout === 0 ) else $error("00_00_1 failed");
+		cin = 0; #10;
+		assert( s === 0 & cout === 0 ) else $error("00_00_0 failed");
+		b = 1;
+		assert( s === 1 & cout === 0 ) else $error("00_01_0 failed");
+		b = 2; 
+		assert( s === 2 & cout === 0 ) else $error("00_10_0 failed");
+		b = 3;
+		assert( s === 3 & cout === 0 ) else $error("00_11_0 failed");
+
+		a = 1; b = 0;
+		assert( s === 1 & cout === 0 ) else $error("01_00_0 failed");
+		b = 1;
+		assert( s === 2 & cout === 0 ) else $error("01_01_0 failed");
+		b = 2;
+		assert( s === 3 & cout === 0 ) else $error("01_10_0 failed");
+		b = 3;
+		assert( s === 0 & cout === 1 ) else $error("01_11_0 failed");
+
+		a = 2; b = 0;
+		assert( s === 2 & cout === 0 ) else $error("10_00_0 failed");
+		b = 1;
+		assert( s === 3 & cout === 0 ) else $error("10_01_0 failed");
+		b = 2;
+		assert( s === 0 & cout === 1 ) else $error("10_10_0 failed");
+		b = 3;
+		assert( s === 1 & cout === 1 ) else $error("10_11_0 failed");
+
+		a = 3; b = 0;
+		assert( s === 3 & cout === 0 ) else $error("11_00_0 failed");
+		b = 1;
+		assert( s === 0 & cout === 1 ) else $error("11_01_0 failed");
+		b = 2;
+		assert( s === 1 & cout === 1 ) else $error("11_10_0 failed");
+		b = 3;
+		assert( s === 2 & cout === 1 ) else $error("11_11_0 failed");
+		end
+
+end module
+
+
+
+
